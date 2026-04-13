@@ -1,10 +1,35 @@
-<!DOCTYPE html>
+
+<style>
+.wrap{padding:8px 0;max-width:640px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:14px}
+.ct{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px}
+.btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
+.btn-primary{background:#1D9E75;color:white;border-color:#1D9E75}
+.copied{font-size:12px;color:#3B6D11;margin-top:6px;min-height:18px}
+.note{background:#EAF3DE;border:0.5px solid #97C459;border-radius:8px;padding:10px 12px;font-size:12px;color:#3B6D11;line-height:1.7;margin-top:10px}
+</style>
+<div class="wrap">
+  <div class="card">
+    <div class="ct">index.html — 最新版（V1.5対応）</div>
+    <button class="btn btn-primary" onclick="doCopy()">index.html をコピー</button>
+    <div class="copied" id="cp"></div>
+    <div class="note">
+      ✓ OCR解析枠オーバーレイ表示<br>
+      ✓ ズームスライダー（枠サイズ20〜95%調整）<br>
+      ✓ Android：BarcodeDetector APIリアルタイムスキャン<br>
+      ✓ iPhone：スキャナーアプリ貼り付け方式<br>
+      ✓ フォーム送信（CORS回避）＋JSONP履歴取得
+    </div>
+  </div>
+</div>
+<script>
+const HTML = `<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>入庫台帳登録Webアプリ V1.6</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+<title>入庫台帳登録Webアプリ V1.5</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"><\/script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
@@ -51,8 +76,6 @@ input[readonly]{background:#f8f8f6;color:#888}
 .qr-row input:first-child{width:80px}
 .qr-row input:last-child{width:64px}
 canvas{display:none}
-
-/* OCRビューア */
 .ocr-viewer{position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000;display:none}
 .ocr-viewer video{width:100%;display:block;max-height:260px;object-fit:cover}
 .ocr-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
@@ -66,8 +89,6 @@ canvas{display:none}
 .ocr-label{position:absolute;left:50%;transform:translateX(-50%);background:rgba(29,158,117,0.88);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;bottom:calc(100% + 6px)}
 .ocr-scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#1D9E75,transparent);animation:scanmove 2s linear infinite}
 @keyframes scanmove{0%{top:0}100%{top:100%}}
-
-/* ズームスライダー */
 .zoom-ctrl{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 4px}
 .zoom-icon{font-size:15px;flex-shrink:0;line-height:1}
 .zoom-icon.small{font-size:13px}
@@ -75,8 +96,6 @@ canvas{display:none}
 .zoom-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#1D9E75;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.2)}
 .zoom-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#1D9E75;cursor:pointer;border:none}
 .zoom-val{font-size:12px;color:#1D9E75;font-weight:600;min-width:32px;text-align:right}
-
-/* バーコード */
 .bc-paste-box{background:#fff;border:2px dashed #1D9E75;border-radius:10px;padding:16px}
 .bc-paste-label{font-size:12px;color:#3B6D11;margin-bottom:8px;font-weight:500}
 .bc-input-row{display:flex;gap:8px;align-items:center}
@@ -107,7 +126,7 @@ tr:last-child td{border-bottom:none}
 <body>
 <div class="hdr">
   <div class="hdr-icon"><svg viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h8v2zm3-4H7v-2h11v2zm0-4H7V7h11v2z"/></svg></div>
-  <div><div class="hdr-title">入庫台帳登録Webアプリ V1.6</div><div class="hdr-sub" id="hdr-sub">設定からGAS URLを入力してください</div></div>
+  <div><div class="hdr-title">入庫台帳登録Webアプリ V1.5</div><div class="hdr-sub" id="hdr-sub">設定からGAS URLを入力してください</div></div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="gotoTab('receive')">入庫登録</div>
@@ -121,7 +140,6 @@ tr:last-child td{border-bottom:none}
     <div class="fr"><label class="fl">作業者名</label><input type="text" id="worker" placeholder="作業者名を入力"></div>
     <div class="fr"><label class="fl">入庫日</label><input type="date" id="recv-date"></div>
   </div>
-
   <div class="card">
     <div class="ct">商品情報の取得</div>
     <div class="btn-g">
@@ -129,7 +147,6 @@ tr:last-child td{border-bottom:none}
       <button class="btn" onclick="setMode('barcode')">▦ バーコード</button>
       <button class="btn" onclick="setMode('manual')">✏️ 手入力</button>
     </div>
-
     <div id="mode-ocr" class="cam-box">
       <div class="cam-ph" id="ocr-ph">
         <svg viewBox="0 0 24 24" fill="#ccc"><path d="M3 3h4V1H3C1.9 1 1 1.9 1 3v4h2V3zm14-2v2h4v4h2V3c0-1.1-.9-2-2-2h-4zM3 17H1v4c0 1.1.9 2 2 2h4v-2H3v-4zm18 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"/></svg>
@@ -140,15 +157,12 @@ tr:last-child td{border-bottom:none}
         <div class="ocr-overlay" id="ocr-overlay"></div>
       </div>
       <canvas id="ocr-cv"></canvas>
-
-      <!-- ズームスライダー -->
       <div class="zoom-ctrl" id="zoom-ctrl" style="display:none">
         <span class="zoom-icon small">🔍</span>
         <input type="range" class="zoom-slider" id="zoom-slider" min="20" max="95" value="70" step="1" oninput="onZoomChange(this.value)">
         <span class="zoom-icon">🔍</span>
         <span class="zoom-val" id="zoom-val">70%</span>
       </div>
-
       <div class="br">
         <button class="btn bp" onclick="startOCR()" id="ob-start">カメラ起動</button>
         <button class="btn hidden" onclick="captureOCR()" id="ob-cap">撮影・解析</button>
@@ -157,7 +171,6 @@ tr:last-child td{border-bottom:none}
       <div id="ocr-prog" class="hidden"><div class="pb"><div class="pf" id="ocr-pf"></div></div><div class="pt" id="ocr-pt">解析中...</div></div>
       <div id="ocr-out"></div>
     </div>
-
     <div id="mode-barcode" class="hidden">
       <div id="bc-native-area">
         <div class="bc-paste-box">
@@ -186,7 +199,6 @@ tr:last-child td{border-bottom:none}
       <div id="bc-rt-stop" class="hidden br"><button class="btn bd bsm" onclick="stopBcRT()">停止</button></div>
       <div id="bc-out"></div>
     </div>
-
     <div id="mode-manual" class="hidden">
       <div class="fr" style="margin-top:8px">
         <label class="fl">品名（手入力）</label>
@@ -194,7 +206,6 @@ tr:last-child td{border-bottom:none}
       </div>
     </div>
   </div>
-
   <div class="card">
     <div class="ct">入庫情報</div>
     <div class="fr"><label class="fl">品名</label><input type="text" id="iname" placeholder="品名"></div>
@@ -242,9 +253,7 @@ let ocrStream=null,bcRTStream=null,bcRTTimer=null,bcCode='';
 let gasUrl=localStorage.getItem('inv_gas_url')||'';
 const hasBD='BarcodeDetector' in window;
 const isAndroid=/Android/i.test(navigator.userAgent);
-
-// 枠サイズ（スライダー値から計算）
-let frameSize=0.70; // デフォルト70%
+let frameSize=0.70;
 
 const today=new Date().toISOString().slice(0,10);
 document.getElementById('recv-date').value=today;
@@ -258,30 +267,25 @@ if(isAndroid||hasBD) document.getElementById('bc-android-area').classList.remove
 document.getElementById('bc-paste-input').addEventListener('keydown',function(e){if(e.key==='Enter') bcPasteSet();});
 document.getElementById('bc-paste-input').addEventListener('paste',function(){setTimeout(()=>{if(this.value.trim().length>=4) bcPasteSet();},100);});
 
-// ズームスライダー変更
 function onZoomChange(val){
-  frameSize = parseInt(val) / 100;
-  document.getElementById('zoom-val').textContent = val + '%';
+  frameSize=parseInt(val)/100;
+  document.getElementById('zoom-val').textContent=val+'%';
   buildOCROverlay();
 }
 
-// オーバーレイ構築（frameSize基準・正方形に近い形）
 function buildOCROverlay(){
-  const overlay = document.getElementById('ocr-overlay');
-  // 枠：横はframeSizeいっぱい、縦は横の40%程度（テキスト向け横長）
-  const fw = frameSize;
-  const fh = Math.min(frameSize * 0.45, 0.6);
-  const fx = (1 - fw) / 2;
-  const fy = (1 - fh) / 2;
-
-  const pct = v => (v * 100).toFixed(2) + '%';
-
-  overlay.innerHTML = `
-    <div class="ocr-mask" style="top:0;left:0;right:0;height:${pct(fy)}"></div>
-    <div class="ocr-mask" style="bottom:0;left:0;right:0;height:${pct(1-fy-fh)}"></div>
-    <div class="ocr-mask" style="top:${pct(fy)};bottom:${pct(1-fy-fh)};left:0;width:${pct(fx)}"></div>
-    <div class="ocr-mask" style="top:${pct(fy)};bottom:${pct(1-fy-fh)};right:0;width:${pct(1-fx-fw)}"></div>
-    <div class="ocr-frame" style="left:${pct(fx)};top:${pct(fy)};width:${pct(fw)};height:${pct(fh)}">
+  const overlay=document.getElementById('ocr-overlay');
+  const fw=frameSize;
+  const fh=Math.min(frameSize*0.45,0.6);
+  const fx=(1-fw)/2;
+  const fy=(1-fh)/2;
+  const pct=v=>(v*100).toFixed(2)+'%';
+  overlay.innerHTML=\`
+    <div class="ocr-mask" style="top:0;left:0;right:0;height:\${pct(fy)}"></div>
+    <div class="ocr-mask" style="bottom:0;left:0;right:0;height:\${pct(1-fy-fh)}"></div>
+    <div class="ocr-mask" style="top:\${pct(fy)};bottom:\${pct(1-fy-fh)};left:0;width:\${pct(fx)}"></div>
+    <div class="ocr-mask" style="top:\${pct(fy)};bottom:\${pct(1-fy-fh)};right:0;width:\${pct(1-fx-fw)}"></div>
+    <div class="ocr-frame" style="left:\${pct(fx)};top:\${pct(fy)};width:\${pct(fw)};height:\${pct(fh)}">
       <div class="ocr-corner tl"></div>
       <div class="ocr-corner tr"></div>
       <div class="ocr-corner bl"></div>
@@ -289,7 +293,7 @@ function buildOCROverlay(){
       <div class="ocr-label">品名をこの枠内に収めてください</div>
       <div class="ocr-scan-line"></div>
     </div>
-  `;
+  \`;
 }
 
 function gotoTab(n){
@@ -299,6 +303,7 @@ function gotoTab(n){
   });
   if(n==='history') loadHistory();
 }
+
 function setMode(m){
   ['ocr','barcode','manual'].forEach(x=>document.getElementById('mode-'+x).classList.add('hidden'));
   document.getElementById('mode-'+m).classList.remove('hidden');
@@ -328,12 +333,12 @@ async function startOCR(){
 async function captureOCR(){
   const v=document.getElementById('ocr-vid');
   const c=document.getElementById('ocr-cv');
-  const vw=v.videoWidth, vh=v.videoHeight;
-  const fw=frameSize, fh=Math.min(frameSize*0.45,0.6);
-  const fx=(1-fw)/2, fy=(1-fh)/2;
-  const cropX=Math.round(vw*fx), cropY=Math.round(vh*fy);
-  const cropW=Math.round(vw*fw), cropH=Math.round(vh*fh);
-  c.width=cropW; c.height=cropH;
+  const vw=v.videoWidth,vh=v.videoHeight;
+  const fw=frameSize,fh=Math.min(frameSize*0.45,0.6);
+  const fx=(1-fw)/2,fy=(1-fh)/2;
+  const cropX=Math.round(vw*fx),cropY=Math.round(vh*fy);
+  const cropW=Math.round(vw*fw),cropH=Math.round(vh*fh);
+  c.width=cropW;c.height=cropH;
   c.getContext('2d').drawImage(v,cropX,cropY,cropW,cropH,0,0,cropW,cropH);
   document.getElementById('ocr-prog').classList.remove('hidden');
   const pf=document.getElementById('ocr-pf'),pt=document.getElementById('ocr-pt');
@@ -342,7 +347,7 @@ async function captureOCR(){
       logger:m=>{if(m.status==='recognizing text'){pf.style.width=(m.progress*90)+'%';pt.textContent='解析中... '+Math.round(m.progress*100)+'%';}}
     });
     pf.style.width='100%';
-    const text=r.data.text.trim().replace(/\s+/g,' ');
+    const text=r.data.text.trim().replace(/\\s+/g,' ');
     if(text){
       document.getElementById('ocr-out').innerHTML='<div class="ocr-box">'+text+'</div><div class="badge bs-ok"><span class="dot"></span>OCR認識完了</div>';
       document.getElementById('iname').value=text;
@@ -383,7 +388,7 @@ async function startBcRT(){
   try{
     bcRTStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
     const vid=document.getElementById('bc-rt-vid');
-    vid.srcObject=bcRTStream; await vid.play();
+    vid.srcObject=bcRTStream;await vid.play();
     const bd=new BarcodeDetector({formats:['aztec','codabar','code_39','code_93','code_128','data_matrix','ean_8','ean_13','itf','pdf417','qr_code','upc_a','upc_e']});
     const scan=async()=>{
       if(!bcRTStream) return;
@@ -394,7 +399,7 @@ async function startBcRT(){
           document.getElementById('iname').value=bcCode;
           document.getElementById('imethod').value='バーコード('+(results[0].format||'RT')+')';
           document.getElementById('bc-out').innerHTML='<div class="badge bs-ok" style="margin-top:8px"><span class="dot"></span>検出: <strong>'+bcCode+'</strong></div>';
-          stopBcRT(); return;
+          stopBcRT();return;
         }
       }catch(e){}
       bcRTTimer=setTimeout(scan,200);
@@ -473,7 +478,7 @@ async function doSubmit(){
 function clearForm(){
   ['iname','iqty','iunit','imemo','imethod','manual-in','bc-paste-input'].forEach(id=>{
     const el=document.getElementById(id);
-    if(!el) return;
+    if(!el)return;
     if(id==='iqty')el.value='1';else if(id==='iunit')el.value='個';else el.value='';
   });
   ['ocr-out','bc-out','sub-result'].forEach(id=>document.getElementById(id).innerHTML='');
@@ -522,6 +527,20 @@ function saveWorker(){
 }
 
 setMode('ocr');
-</script>
+<\/script>
 </body>
-</html>
+</html>`;
+
+function doCopy(){
+  navigator.clipboard.writeText(HTML).then(()=>{
+    document.getElementById('cp').textContent='✓ コピーしました';
+    setTimeout(()=>{document.getElementById('cp').textContent='';},3000);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=HTML;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    document.getElementById('cp').textContent='✓ コピーしました';
+    setTimeout(()=>{document.getElementById('cp').textContent='';},3000);
+  });
+}
+</script>
