@@ -1,35 +1,10 @@
-
-<style>
-.wrap{padding:8px 0;max-width:640px}
-.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:16px;margin-bottom:14px}
-.ct{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px}
-.btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
-.btn-primary{background:#1D9E75;color:white;border-color:#1D9E75}
-.copied{font-size:12px;color:#3B6D11;margin-top:6px;min-height:18px}
-.note{background:#EAF3DE;border:0.5px solid #97C459;border-radius:8px;padding:10px 12px;font-size:12px;color:#3B6D11;line-height:1.7;margin-top:10px}
-</style>
-<div class="wrap">
-  <div class="card">
-    <div class="ct">index.html — 最新版（V1.5対応）</div>
-    <button class="btn btn-primary" onclick="doCopy()">index.html をコピー</button>
-    <div class="copied" id="cp"></div>
-    <div class="note">
-      ✓ OCR解析枠オーバーレイ表示<br>
-      ✓ ズームスライダー（枠サイズ20〜95%調整）<br>
-      ✓ Android：BarcodeDetector APIリアルタイムスキャン<br>
-      ✓ iPhone：スキャナーアプリ貼り付け方式<br>
-      ✓ フォーム送信（CORS回避）＋JSONP履歴取得
-    </div>
-  </div>
-</div>
-<script>
-const HTML = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>入庫台帳登録Webアプリ V1.5</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"><\/script>
+<title>入庫検収システム V1.5</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
@@ -126,7 +101,7 @@ tr:last-child td{border-bottom:none}
 <body>
 <div class="hdr">
   <div class="hdr-icon"><svg viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h8v2zm3-4H7v-2h11v2zm0-4H7V7h11v2z"/></svg></div>
-  <div><div class="hdr-title">入庫台帳登録Webアプリ V1.5</div><div class="hdr-sub" id="hdr-sub">設定からGAS URLを入力してください</div></div>
+  <div><div class="hdr-title">入庫検収システム V1.5</div><div class="hdr-sub" id="hdr-sub">設定からGAS URLを入力してください</div></div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="gotoTab('receive')">入庫登録</div>
@@ -280,12 +255,12 @@ function buildOCROverlay(){
   const fx=(1-fw)/2;
   const fy=(1-fh)/2;
   const pct=v=>(v*100).toFixed(2)+'%';
-  overlay.innerHTML=\`
-    <div class="ocr-mask" style="top:0;left:0;right:0;height:\${pct(fy)}"></div>
-    <div class="ocr-mask" style="bottom:0;left:0;right:0;height:\${pct(1-fy-fh)}"></div>
-    <div class="ocr-mask" style="top:\${pct(fy)};bottom:\${pct(1-fy-fh)};left:0;width:\${pct(fx)}"></div>
-    <div class="ocr-mask" style="top:\${pct(fy)};bottom:\${pct(1-fy-fh)};right:0;width:\${pct(1-fx-fw)}"></div>
-    <div class="ocr-frame" style="left:\${pct(fx)};top:\${pct(fy)};width:\${pct(fw)};height:\${pct(fh)}">
+  overlay.innerHTML=`
+    <div class="ocr-mask" style="top:0;left:0;right:0;height:${pct(fy)}"></div>
+    <div class="ocr-mask" style="bottom:0;left:0;right:0;height:${pct(1-fy-fh)}"></div>
+    <div class="ocr-mask" style="top:${pct(fy)};bottom:${pct(1-fy-fh)};left:0;width:${pct(fx)}"></div>
+    <div class="ocr-mask" style="top:${pct(fy)};bottom:${pct(1-fy-fh)};right:0;width:${pct(1-fx-fw)}"></div>
+    <div class="ocr-frame" style="left:${pct(fx)};top:${pct(fy)};width:${pct(fw)};height:${pct(fh)}">
       <div class="ocr-corner tl"></div>
       <div class="ocr-corner tr"></div>
       <div class="ocr-corner bl"></div>
@@ -293,7 +268,7 @@ function buildOCROverlay(){
       <div class="ocr-label">品名をこの枠内に収めてください</div>
       <div class="ocr-scan-line"></div>
     </div>
-  \`;
+  `;
 }
 
 function gotoTab(n){
@@ -347,7 +322,7 @@ async function captureOCR(){
       logger:m=>{if(m.status==='recognizing text'){pf.style.width=(m.progress*90)+'%';pt.textContent='解析中... '+Math.round(m.progress*100)+'%';}}
     });
     pf.style.width='100%';
-    const text=r.data.text.trim().replace(/\\s+/g,' ');
+    const text=r.data.text.trim().replace(/\s+/g,' ');
     if(text){
       document.getElementById('ocr-out').innerHTML='<div class="ocr-box">'+text+'</div><div class="badge bs-ok"><span class="dot"></span>OCR認識完了</div>';
       document.getElementById('iname').value=text;
@@ -527,20 +502,6 @@ function saveWorker(){
 }
 
 setMode('ocr');
-<\/script>
-</body>
-</html>`;
-
-function doCopy(){
-  navigator.clipboard.writeText(HTML).then(()=>{
-    document.getElementById('cp').textContent='✓ コピーしました';
-    setTimeout(()=>{document.getElementById('cp').textContent='';},3000);
-  }).catch(()=>{
-    const ta=document.createElement('textarea');
-    ta.value=HTML;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    document.getElementById('cp').textContent='✓ コピーしました';
-    setTimeout(()=>{document.getElementById('cp').textContent='';},3000);
-  });
-}
 </script>
+</body>
+</html>
