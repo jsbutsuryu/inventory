@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>入庫台帳登録Webアプリ V1.5</title>
+<title>入庫台帳登録Webアプリ V1.6</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -96,12 +96,16 @@ tr:last-child td{border-bottom:none}
 .mb-m{background:#f1efe8;color:#888}
 .empty{text-align:center;padding:28px;color:#ccc;font-size:13px}
 .gas-note{background:#EAF3DE;border:1px solid #97C459;border-radius:8px;padding:10px 12px;font-size:12px;color:#3B6D11;line-height:1.6;margin-bottom:10px}
+.ocr-raw-label{font-size:10px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;margin-top:10px;margin-bottom:3px}
+.ocr-ai-result{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#e8f8f2,#d4f0e4);border:1px solid #a8dfc8;border-radius:10px;padding:10px 13px;margin-top:10px}
+.ocr-ai-icon{font-size:10px;font-weight:700;color:#0F6E56;background:#c2edd8;padding:3px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.ocr-ai-name{font-size:14px;font-weight:600;color:#0a4d3a;word-break:break-all}
 </style>
 </head>
 <body>
 <div class="hdr">
   <div class="hdr-icon"><svg viewBox="0 0 24 24"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h8v2zm3-4H7v-2h11v2zm0-4H7V7h11v2z"/></svg></div>
-  <div><div class="hdr-title">入庫台帳登録Webアプリ V1.5</div><div class="hdr-sub" id="hdr-sub">設定からGAS URLを入力してください</div></div>
+  <div><div class="hdr-title">入庫台帳登録Webアプリ V1.6</div><div class="hdr-sub" id="hdr-sub">設定からGAS URLを入力してください</div></div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="gotoTab('receive')">入庫登録</div>
@@ -124,7 +128,7 @@ tr:last-child td{border-bottom:none}
     <div id="mode-ocr" class="cam-box">
       <div class="cam-ph" id="ocr-ph">
         <svg viewBox="0 0 24 24" fill="#ccc"><path d="M3 3h4V1H3C1.9 1 1 1.9 1 3v4h2V3zm14-2v2h4v4h2V3c0-1.1-.9-2-2-2h-4zM3 17H1v4c0 1.1.9 2 2 2h4v-2H3v-4zm18 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"/></svg>
-        <div style="font-size:12px">枠内に品名を合わせて撮影します</div>
+        <div style="font-size:12px">枠内に品名を合わせて撮影→AIが商品名を自動抽出します</div>
       </div>
       <div class="ocr-viewer" id="ocr-viewer">
         <video id="ocr-vid" autoplay playsinline></video>
@@ -246,7 +250,90 @@ function buildOCROverlay(){
 function gotoTab(n){['receive','history','settings'].forEach((t,i)=>{document.getElementById('tab-'+t).classList.toggle('hidden',t!==n);document.querySelectorAll('.tab')[i].classList.toggle('active',t===n);});if(n==='history') loadHistory();}
 function setMode(m){['ocr','barcode','manual'].forEach(x=>document.getElementById('mode-'+x).classList.add('hidden'));document.getElementById('mode-'+m).classList.remove('hidden');if(m==='ocr') document.getElementById('imethod').value='OCR';if(m==='barcode') document.getElementById('imethod').value='バーコード';if(m==='manual') document.getElementById('imethod').value='手入力';stopOCR();stopBcRT();}
 async function startOCR(){try{ocrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});const v=document.getElementById('ocr-vid');v.srcObject=ocrStream;document.getElementById('ocr-viewer').style.display='block';document.getElementById('ocr-ph').classList.add('hidden');document.getElementById('ob-start').classList.add('hidden');document.getElementById('ob-cap').classList.remove('hidden');document.getElementById('ob-stop').classList.remove('hidden');document.getElementById('zoom-ctrl').style.display='flex';buildOCROverlay();}catch(e){document.getElementById('ocr-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>カメラアクセスが拒否されました</div>';}}
-async function captureOCR(){const v=document.getElementById('ocr-vid'),c=document.getElementById('ocr-cv');const vw=v.videoWidth,vh=v.videoHeight,fw=frameSize,fh=Math.min(frameSize*0.45,0.6),fx=(1-fw)/2,fy=(1-fh)/2;const cropX=Math.round(vw*fx),cropY=Math.round(vh*fy),cropW=Math.round(vw*fw),cropH=Math.round(vh*fh);c.width=cropW;c.height=cropH;c.getContext('2d').drawImage(v,cropX,cropY,cropW,cropH,0,0,cropW,cropH);document.getElementById('ocr-prog').classList.remove('hidden');const pf=document.getElementById('ocr-pf'),pt=document.getElementById('ocr-pt');try{const r=await Tesseract.recognize(c.toDataURL('image/jpeg',0.95),'jpn+eng',{logger:m=>{if(m.status==='recognizing text'){pf.style.width=(m.progress*90)+'%';pt.textContent='解析中... '+Math.round(m.progress*100)+'%';}}});pf.style.width='100%';const text=r.data.text.trim().replace(/\s+/g,' ');if(text){document.getElementById('ocr-out').innerHTML='<div class="ocr-box">'+text+'</div><div class="badge bs-ok"><span class="dot"></span>OCR認識完了</div>';document.getElementById('iname').value=text;}else{document.getElementById('ocr-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>テキストを認識できませんでした。枠を調整して再撮影してください。</div>';}}catch(e){document.getElementById('ocr-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>OCRエラー</div>';}setTimeout(()=>{document.getElementById('ocr-prog').classList.add('hidden');pf.style.width='0';},1500);}
+async function extractProductNameWithClaude(ocrText, imageBase64) {
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 }
+            },
+            {
+              type: 'text',
+              text: `この商品ラベルの画像と、そこからOCRで抽出したテキストをもとに、商品名（品名）として最も適切な文字列を1つだけ返してください。
+
+OCRテキスト:
+${ocrText}
+
+ルール:
+- 商品名・製品名・品名に該当する部分のみを返す
+- 価格・数量・メーカー名・バーコード番号・説明文などは含めない
+- 前置き・説明・句読点は不要。商品名のみを返す
+- 日本語の場合はそのまま日本語で返す
+- 認識できない場合は「不明」と返す`
+            }
+          ]
+        }]
+      })
+    });
+    const data = await response.json();
+    return data.content?.[0]?.text?.trim() || null;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function captureOCR(){
+  const v=document.getElementById('ocr-vid'),c=document.getElementById('ocr-cv');
+  const vw=v.videoWidth,vh=v.videoHeight,fw=frameSize,fh=Math.min(frameSize*0.45,0.6),fx=(1-fw)/2,fy=(1-fh)/2;
+  const cropX=Math.round(vw*fx),cropY=Math.round(vh*fy),cropW=Math.round(vw*fw),cropH=Math.round(vh*fh);
+  c.width=cropW;c.height=cropH;
+  c.getContext('2d').drawImage(v,cropX,cropY,cropW,cropH,0,0,cropW,cropH);
+  const imageBase64 = c.toDataURL('image/jpeg',0.95).split(',')[1];
+  document.getElementById('ocr-prog').classList.remove('hidden');
+  const pf=document.getElementById('ocr-pf'),pt=document.getElementById('ocr-pt');
+  try {
+    // Step1: Tesseract OCR
+    pt.textContent='テキスト認識中...';
+    const r=await Tesseract.recognize(c.toDataURL('image/jpeg',0.95),'jpn+eng',{logger:m=>{if(m.status==='recognizing text'){pf.style.width=(m.progress*70)+'%';pt.textContent='OCR解析中... '+Math.round(m.progress*100)+'%';}}});
+    pf.style.width='75%';
+    const rawText=r.data.text.trim().replace(/\s+/g,' ');
+
+    if(!rawText){
+      document.getElementById('ocr-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>テキストを認識できませんでした。枠を調整して再撮影してください。</div>';
+      return;
+    }
+
+    // Step2: Claude API で商品名を抽出
+    pt.textContent='AIが商品名を抽出中...';
+    pf.style.width='85%';
+    const productName = await extractProductNameWithClaude(rawText, imageBase64);
+    pf.style.width='100%';
+
+    const finalName = (productName && productName !== '不明') ? productName : rawText;
+    document.getElementById('iname').value=finalName;
+
+    let html = '<div class="ocr-raw-label">OCR生テキスト</div><div class="ocr-box">'+rawText+'</div>';
+    if(productName && productName !== '不明'){
+      html += '<div class="ocr-ai-result"><span class="ocr-ai-icon">✦ AI抽出</span><span class="ocr-ai-name">'+productName+'</span></div>';
+      html += '<div class="badge bs-ok" style="margin-top:6px"><span class="dot"></span>品名を自動抽出しました</div>';
+    } else {
+      html += '<div class="badge bs-in" style="margin-top:6px"><span class="dot"></span>OCRテキストをそのまま使用します</div>';
+    }
+    document.getElementById('ocr-out').innerHTML=html;
+
+  } catch(e){
+    document.getElementById('ocr-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>OCRエラー: '+e.message+'</div>';
+  }
+  setTimeout(()=>{document.getElementById('ocr-prog').classList.add('hidden');pf.style.width='0';},1500);
+}
 function stopOCR(){if(ocrStream){ocrStream.getTracks().forEach(t=>t.stop());ocrStream=null;}document.getElementById('ocr-viewer').style.display='none';document.getElementById('zoom-ctrl').style.display='none';document.getElementById('ocr-ph').classList.remove('hidden');document.getElementById('ob-start').classList.remove('hidden');document.getElementById('ob-cap').classList.add('hidden');document.getElementById('ob-stop').classList.add('hidden');}
 function bcPasteSet(){const code=document.getElementById('bc-paste-input').value.trim();if(!code)return;bcCode=code;document.getElementById('iname').value=code;document.getElementById('imethod').value='バーコード(貼り付け)';document.getElementById('bc-out').innerHTML='<div class="badge bs-ok" style="margin-top:8px"><span class="dot"></span>セット完了: <strong>'+code+'</strong></div>';document.getElementById('bc-paste-input').value='';}
 async function startBcRT(){document.getElementById('bc-native-area').style.display='none';document.getElementById('bc-rt-box').style.display='block';document.getElementById('bc-rt-stop').classList.remove('hidden');document.getElementById('bc-out').innerHTML='<div class="badge bs-in" style="margin-top:8px"><span class="spin"></span> スキャン中...</div>';try{bcRTStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});const vid=document.getElementById('bc-rt-vid');vid.srcObject=bcRTStream;await vid.play();const bd=new BarcodeDetector({formats:['aztec','codabar','code_39','code_93','code_128','data_matrix','ean_8','ean_13','itf','pdf417','qr_code','upc_a','upc_e']});const scan=async()=>{if(!bcRTStream)return;try{const results=await bd.detect(vid);if(results&&results.length>0){bcCode=results[0].rawValue;document.getElementById('iname').value=bcCode;document.getElementById('imethod').value='バーコード('+( results[0].format||'RT')+')';document.getElementById('bc-out').innerHTML='<div class="badge bs-ok" style="margin-top:8px"><span class="dot"></span>検出: <strong>'+bcCode+'</strong></div>';stopBcRT();return;}}catch(e){}bcRTTimer=setTimeout(scan,200);};scan();}catch(e){document.getElementById('bc-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>カメラエラー: '+e.message+'</div>';stopBcRT();}}
