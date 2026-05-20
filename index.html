@@ -250,8 +250,8 @@ function buildOCROverlay(){
 function gotoTab(n){['receive','history','settings'].forEach((t,i)=>{document.getElementById('tab-'+t).classList.toggle('hidden',t!==n);document.querySelectorAll('.tab')[i].classList.toggle('active',t===n);});if(n==='history') loadHistory();}
 function setMode(m){['ocr','barcode','manual'].forEach(x=>document.getElementById('mode-'+x).classList.add('hidden'));document.getElementById('mode-'+m).classList.remove('hidden');if(m==='ocr') document.getElementById('imethod').value='OCR';if(m==='barcode') document.getElementById('imethod').value='バーコード';if(m==='manual') document.getElementById('imethod').value='手入力';stopOCR();stopBcRT();}
 async function startOCR(){try{ocrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});const v=document.getElementById('ocr-vid');v.srcObject=ocrStream;document.getElementById('ocr-viewer').style.display='block';document.getElementById('ocr-ph').classList.add('hidden');document.getElementById('ob-start').classList.add('hidden');document.getElementById('ob-cap').classList.remove('hidden');document.getElementById('ob-stop').classList.remove('hidden');document.getElementById('zoom-ctrl').style.display='flex';buildOCROverlay();}catch(e){document.getElementById('ocr-out').innerHTML='<div class="badge bs-er"><span class="dot"></span>カメラアクセスが拒否されました</div>';}}
-// GASをプロキシとしてClaude APIを呼び出す（CORS回避）
-function extractProductNameViaGAS(ocrText, imageBase64) {
+// GASをプロキシとしてClaude APIを呼び出す（テキストのみ送信・CORS回避）
+function extractProductNameViaGAS(ocrText) {
   return new Promise((resolve, reject) => {
     if (!gasUrl) { reject(new Error('GAS URL未設定')); return; }
     const cbName = 'cb_extract_' + Date.now();
@@ -266,14 +266,9 @@ function extractProductNameViaGAS(ocrText, imageBase64) {
       if (data.status === 'ok') resolve(data.name);
       else reject(new Error(data.message || 'GASエラー'));
     };
-    // 画像はURLエンコードして送信
-    const params = new URLSearchParams({
-      action: 'extractName',
-      ocrText: ocrText,
-      imageB64: imageBase64,
-      callback: cbName
-    });
-    script.src = gasUrl + '?' + params.toString();
+    // OCRテキストのみ送信（画像は送らない）
+    const encoded = encodeURIComponent(ocrText).slice(0, 800); // 長すぎる場合は切り詰め
+    script.src = gasUrl + '?action=extractName&ocrText=' + encoded + '&callback=' + cbName;
     script.onerror = () => { if (done) return; done = true; cleanup(); reject(new Error('通信エラー')); };
     setTimeout(() => { if (done) return; done = true; cleanup(); reject(new Error('タイムアウト')); }, 20000);
     document.head.appendChild(script);
@@ -301,10 +296,10 @@ async function captureOCR(){
       return;
     }
 
-    // Step2: GAS経由でClaude APIを呼び出し商品名を抽出
+    // Step2: GAS経由でClaude APIを呼び出し商品名を抽出（テキストのみ送信）
     pt.textContent='AIが商品名を抽出中...';
     pf.style.width='85%';
-    const productName = await extractProductNameViaGAS(rawText, imageBase64).catch(err => {
+    const productName = await extractProductNameViaGAS(rawText).catch(err => {
       console.warn('AI抽出失敗:', err.message); return null;
     });
     pf.style.width='100%';
